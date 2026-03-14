@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Expense Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-grad-start: #fdf6f0;
+      --bg-grad-mid: #f9f0f7;
+      --bg-grad-end: #f0f4fd;
+      --card-bg: rgba(255, 255, 255, 0.82);
+      --card-border: rgba(210, 190, 240, 0.35);
+      --input-bg: #faf7fd;
+      --input-border: #ede6f7;
+      --input-focus: #c9a8e8;
+      --text-primary: #5a4a6a;
+      --text-muted: #9e8fae;
+      --text-amount: #8a6ab0;
+      --accent-grad-start: #d4a8e8;
+      --accent-grad-end: #a8b8f0;
+      --total-grad-start: #e8d8f8;
+      --total-grad-end: #d4dff8;
+      --total-text: #7a60a0;
+      --total-num: #5a3a8a;
+      --del-color: #d0bce8;
+      --del-hover-bg: #fce8e8;
+      --del-hover-color: #c07070;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: linear-gradient(135deg, var(--bg-grad-start) 0%, var(--bg-grad-mid) 50%, var(--bg-grad-end) 100%);
+      min-height: 100vh;
+      padding: 2.5rem 1rem 5rem;
+      color: var(--text-primary);
+    }
+
+    /* ── Header ─────────────────────────── */
+    .page-header {
+      text-align: center;
+      margin-bottom: 1.8rem;
+    }
+
+    .page-header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.4px;
+      margin-bottom: 0.3rem;
+    }
+
+    .page-header p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Card ───────────────────────────── */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 1.6rem 1.5rem;
+      box-shadow: 0 6px 32px rgba(160, 120, 200, 0.1), 0 1px 6px rgba(160, 120, 200, 0.07);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ── Form ───────────────────────────── */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      margin-bottom: 0.4rem;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid var(--input-border);
+      border-radius: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.92rem;
+      color: var(--text-primary);
+      background: var(--input-bg);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="text"]::placeholder,
+    input[type="number"]::placeholder {
+      color: #c5b8d8;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus {
+      border-color: var(--input-focus);
+      box-shadow: 0 0 0 3px rgba(201, 168, 232, 0.2);
+    }
+
+    input.error {
+      border-color: #f0a0b0 !important;
+      box-shadow: 0 0 0 3px rgba(240, 160, 176, 0.18) !important;
+    }
+
+    /* Custom select arrow */
+    .select-wrap {
+      position: relative;
+    }
+
+    .select-wrap::after {
+      content: '▾';
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      pointer-events: none;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .btn-add {
+      width: 100%;
+      margin-top: 0.4rem;
+      padding: 0.88rem;
+      background: linear-gradient(135deg, var(--accent-grad-start), var(--accent-grad-end));
+      border: none;
+      border-radius: 14px;
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.2px;
+      transition: transform 0.15s, box-shadow 0.2s, opacity 0.15s;
+    }
+
+    .btn-add:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(180, 140, 230, 0.38);
+    }
+
+    .btn-add:active {
+      transform: translateY(0);
+      opacity: 0.9;
+    }
+
+    /* ── Section titles ─────────────────── */
+    .section-title {
+      max-width: 480px;
+      margin: 1.6rem auto 0.7rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      padding: 0 0.25rem;
+    }
+
+    /* ── Expense list ───────────────────── */
+    .expense-list {
+      max-width: 480px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .expense-item {
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(210, 190, 240, 0.28);
+      border-radius: 18px;
+      padding: 0.9rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      box-shadow: 0 2px 12px rgba(160, 120, 200, 0.07);
+      animation: fadeSlideIn 0.3s ease both;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .expense-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(160, 120, 200, 0.13);
+    }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Category icon ──────────────────── */
+    .cat-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      flex-shrink: 0;
+    }
+
+    .cat-food     { background: #fde8ec; }
+    .cat-travel   { background: #e8f0fd; }
+    .cat-shopping { background: #fdf0e8; }
+    .cat-bills    { background: #edf8ee; }
+    .cat-other    { background: #f3edfb; }
+
+    /* ── Expense info ───────────────────── */
+    .exp-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .exp-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .exp-cat {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .exp-amount {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-amount);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ── Delete button ──────────────────── */
+    .btn-del {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--del-color);
+      font-size: 0.8rem;
+      padding: 6px 7px;
+      border-radius: 8px;
+      transition: color 0.15s, background 0.15s;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .btn-del:hover {
+      color: var(--del-hover-color);
+      background: var(--del-hover-bg);
+    }
+
+    /* ── Total card ─────────────────────── */
+    .total-card {
+      max-width: 480px;
+      margin: 1rem auto 0;
+      background: linear-gradient(135deg, var(--total-grad-start), var(--total-grad-end));
+      border-radius: 20px;
+      padding: 1.1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid rgba(210, 190, 240, 0.3);
+    }
+
+    .total-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--total-text);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 4px;
+    }
+
+    .total-amount {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: var(--total-num);
+      letter-spacing: -0.5px;
+    }
+
+    .total-emoji {
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    /* ── Empty state ────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--text-muted);
+    }
+
+    .empty-icon {
+      display: block;
+      font-size: 2.8rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .empty-state p {
+      font-size: 0.88rem;
+    }
+
+    /* ── Responsive ─────────────────────── */
+    @media (max-width: 420px) {
+      .row { grid-template-columns: 1fr; }
+      .page-header h1 { font-size: 1.45rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="page-header">
+    <h1>✦ Daily Expense Tracker</h1>
+    <p>Track your spending, beautifully.</p>
+  </header>
+
+  <!-- Add Expense Form -->
+  <div class="card">
+    <div class="form-group">
+      <label for="expName">Expense Name</label>
+      <input type="text" id="expName" placeholder="e.g. Coffee, Uber, Groceries…" autocomplete="off" />
+    </div>
+    <div class="row">
+      <div class="form-group">
+        <label for="expAmount">Amount (₹)</label>
+        <input type="number" id="expAmount" placeholder="0.00" min="0" step="0.01" />
+      </div>
+      <div class="form-group">
+        <label for="expCat">Category</label>
+        <div class="select-wrap">
+          <select id="expCat">
+            <option value="Food">🍜 Food</option>
+            <option value="Travel">✈️ Travel</option>
+            <option value="Shopping">🛍️ Shopping</option>
+            <option value="Bills">🧾 Bills</option>
+            <option value="Other">✦ Other</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <button class="btn-add" id="addBtn">+ Add Expense</button>
+  </div>
+
+  <!-- Expenses Section -->
+  <div id="expenseSection" style="display: none;">
+    <div class="section-title">Recent Expenses</div>
+    <div class="expense-list" id="expenseList"></div>
+    <div class="total-card">
+      <div>
+        <div class="total-label">Total Spending</div>
+        <div class="total-amount" id="totalAmt">₹0.00</div>
+      </div>
+      <div class="total-emoji">💜</div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div id="emptyState" style="display: none;">
+    <div class="empty-state">
+      <span class="empty-icon">🌸</span>
+      <p>No expenses yet — add your first one above!</p>
+    </div>
+  </div>
+
+  <script>
+    const CAT_ICONS = {
+      Food: '🍜',
+      Travel: '✈️',
+      Shopping: '🛍️',
+      Bills: '🧾',
+      Other: '✦'
+    };
+
+    const CAT_CLASSES = {
+      Food: 'cat-food',
+      Travel: 'cat-travel',
+      Shopping: 'cat-shopping',
+      Bills: 'cat-bills',
+      Other: 'cat-other'
+    };
+
+    // Load from localStorage
+    let expenses = JSON.parse(localStorage.getItem('dt_expenses') || '[]');
+
+    function save() {
+      localStorage.setItem('dt_expenses', JSON.stringify(expenses));
+    }
+
+    function formatINR(amount) {
+      return '₹' + parseFloat(amount).toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function render() {
+      const list    = document.getElementById('expenseList');
+      const section = document.getElementById('expenseSection');
+      const empty   = document.getElementById('emptyState');
+
+      list.innerHTML = '';
+
+      if (expenses.length === 0) {
+        section.style.display = 'none';
+        empty.style.display   = 'block';
+        return;
+      }
+
+      section.style.display = 'block';
+      empty.style.display   = 'none';
+
+      // Show newest first
+      expenses.slice().reverse().forEach((e, ri) => {
+        const realIndex = expenses.length - 1 - ri;
+
+        const item = document.createElement('div');
+        item.className = 'expense-item';
+        item.innerHTML = `
+          <div class="cat-icon ${CAT_CLASSES[e.cat] || 'cat-other'}">${CAT_ICONS[e.cat] || '✦'}</div>
+          <div class="exp-info">
+            <div class="exp-name">${escapeHtml(e.name)}</div>
+            <div class="exp-cat">${e.cat}</div>
+          </div>
+          <div class="exp-amount">${formatINR(e.amount)}</div>
+          <button class="btn-del" data-index="${realIndex}" title="Delete expense" aria-label="Delete ${escapeHtml(e.name)}">✕</button>
+        `;
+        list.appendChild(item);
+      });
+
+      // Total
+      const total = expenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+      document.getElementById('totalAmt').textContent = formatINR(total);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function showError(input) {
+      input.classList.add('error');
+      input.focus();
+      setTimeout(() => input.classList.remove('error'), 1400);
+    }
+
+    // Delete
+    document.getElementById('expenseList').addEventListener('click', function (e) {
+      const btn = e.target.closest('.btn-del');
+      if (!btn) return;
+      const i = parseInt(btn.dataset.index, 10);
+      expenses.splice(i, 1);
+      save();
+      render();
+    });
+
+    // Add
+    document.getElementById('addBtn').addEventListener('click', function () {
+      const nameInput   = document.getElementById('expName');
+      const amountInput = document.getElementById('expAmount');
+      const catInput    = document.getElementById('expCat');
+
+      const name   = nameInput.value.trim();
+      const amount = parseFloat(amountInput.value);
+      const cat    = catInput.value;
+
+      if (!name) { showError(nameInput); return; }
+      if (!amountInput.value || isNaN(amount) || amount <= 0) { showError(amountInput); return; }
+
+      expenses.push({ id: Date.now(), name, amount, cat });
+      save();
+      render();
+
+      nameInput.value  = '';
+      amountInput.value = '';
+      catInput.selectedIndex = 0;
+      nameInput.focus();
+    });
+
+    // Enter key support
+    ['expName', 'expAmount'].forEach(id => {
+      document.getElementById(id).addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') document.getElementById('addBtn').click();
+      });
+    });
+
+    // Initial render
+    render();
+  </script>
+
+</body>
+</html>
